@@ -1,0 +1,10 @@
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/spinner_item_textview"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="5dp"
+    android:layout_marginTop="5dp"
+    android:background="#ffffff"
+    android:fontFamily="@font/ff_meta_pro_book"
+    android:textColor="#ff0000"
+    android:textSize="20sp" />

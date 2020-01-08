@@ -1,0 +1,42 @@
+<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.preference.PreferenceCategory android:title="Testreszabás">
+
+        <android.support.v7.preference.EditTextPreference
+            android:defaultValue="0"
+            android:dialogMessage="Kezdőbalansz"
+            android:inputType="number"
+            android:key="@string/initialbalance_key"
+            android:title="Kezdőbalansz beállítása" />
+
+        <android.support.v7.preference.Preference
+            android:key="@string/categories"
+            android:title="Kategóriák szerkesztése" />
+
+        <android.support.v7.preference.Preference
+            android:key="@string/password_settings"
+            android:title="Biztonsági jelszó" />
+
+        <android.support.v7.preference.Preference
+            android:key="@string/export_data"
+            android:title="Adatok exportálása (net)" />
+
+        <android.support.v7.preference.Preference
+            android:key="@string/export_data_local"
+            android:title="Adatok exportálása (helyi)" />
+
+        <android.support.v7.preference.Preference
+            android:key="@string/import_data_local"
+            android:title="Adatok importálása (helyi)" />
+
+    </android.support.v7.preference.PreferenceCategory>
+
+    <android.support.v7.preference.PreferenceCategory android:title="Segítség/licensz">
+
+        <android.support.v7.preference.Preference android:title="Súgó" />
+
+        <android.support.v7.preference.Preference android:title="Jogi tudnivalók" />
+
+    </android.support.v7.preference.PreferenceCategory>
+
+</android.support.v7.preference.PreferenceScreen>

@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/new_edit_entry_scrollview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioGroup
+                android:id="@+id/new_edit_entry_radiogroup"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_weight="20"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/new_edit_entry_radiobutton_income"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    android:fontFamily="@font/ff_meta_pro_book"
+                    android:text="Bevétel"
+                    android:textColor="#000000"
+                    android:textSize="18sp" />
+
+                <RadioButton
+                    android:id="@+id/new_edit_entry_radiobutton_expenditure"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:fontFamily="@font/ff_meta_pro_book"
+                    android:text="Kiadás"
+                    android:textColor="#000000"
+                    android:textSize="18sp" />
+
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/new_edit_entry_datetext"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="10dp"
+                android:layout_weight="10"
+                android:background="@color/lightGray"
+                android:fontFamily="@font/ff_meta_pro_book"
+                android:gravity="center"
+                android:textColor="@color/darkRed"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <GridView
+            android:id="@+id/new_edit_entry_gridview"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/frame_background"
+            android:clipToPadding="false"
+            android:columnWidth="120dp"
+            android:horizontalSpacing="16dp"
+            android:numColumns="2"
+            android:padding="20dp"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="8dp"></GridView>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/bgcolor2"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/sum"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:background="@color/lighterGray"
+                android:fontFamily="@font/ff_meta_pro_book"
+                android:textColor="@color/darkRed"
+                android:textSize="26sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="@font/ff_meta_pro_book"
+                android:text="Ft"
+                android:textColor="@color/darkRed"
+                android:textSize="26sp" />
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/bgcolor2">
+
+            <include
+                android:id="@+id/new_edit_entry_include"
+                layout="@layout/numeric_keyboard_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/bgcolor3"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/new_edit_entry_subcat_checkbox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:checked="false"
+                android:fontFamily="@font/ff_meta_pro_book"
+                android:text="Alkategória:"
+                android:textColor="#000000" />
+
+            <Spinner
+                android:id="@+id/subcat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:fontFamily="@font/ff_meta_pro_book"
+                android:spinnerMode="dropdown"
+                android:textColor="#000000"
+                android:visibility="invisible" />
+
+            <Button
+                android:id="@+id/new_edit_entry_new_subcat_btn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/ff_meta_pro_book"
+                android:text="Új..."
+                android:visibility="visible" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/new_edit_entry_repetitive_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/bgcolor4"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/new_edit_entry_startdate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/lightGray"
+                    android:fontFamily="@font/ff_meta_pro_book"
+                    android:gravity="center"
+                    android:minWidth="100dp"
+                    android:textColor="@color/darkRed"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/ff_meta_pro_book"
+                    android:text="-tól" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/new_edit_entry_repetitive_checkbox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    android:fontFamily="@font/ff_meta_pro_book"
+                    android:text="Folyamatos" />
+
+                <TextView
+                    android:id="@+id/new_edit_entry_enddate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/lightGray"
+                    android:fontFamily="@font/ff_meta_pro_book"
+                    android:gravity="center"
+                    android:minWidth="100dp"
+                    android:textColor="@color/darkRed"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:visibility="invisible" />
+
+                <TextView
+                    android:id="@+id/new_edit_entry_enddate_suppl"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/ff_meta_pro_book"
+                    android:text="-ig" />
+
+                <Spinner
+                    android:id="@+id/new_edit_entry_turnover_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:spinnerMode="dropdown"></Spinner>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+
+            <Button
+                android:id="@+id/newentrydialog_ok_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/ff_meta_pro_book"
+                android:text="OK" />
+
+
+            <Button
+                android:id="@+id/newentrydialog_cancel_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/ff_meta_pro_book"
+                android:text="Mégse" />
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

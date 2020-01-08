@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="btn_textsize">15dp</dimen>
+    <dimen name="btn_width">55dp</dimen>
+    <dimen name="btn_height">55dp</dimen>
+    <dimen name="btn_margin">0dp</dimen>
+
+    <dimen name="iconsize_large">100dp</dimen>
+    <dimen name="iconsize_medium">40dp</dimen>
+
+</resources>

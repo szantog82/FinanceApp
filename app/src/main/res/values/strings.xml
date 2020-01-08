@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Finance</string>
+
+
+    <string name="SHAREDPREF_MAINKEY">com.example.szantog.finance pref_key</string>
+
+    <string name="initialbalance_key">initialbalance_key</string>
+    <string name="incomecategorylist_key">incomecategorylist_key</string>
+    <string name="expenditurecategorylist_key">expenditurecategorylist_key</string>
+    <string name="categories">categories</string>
+    <string name="subcategorylist_key">subcategorylist_key</string>
+    <string name="category_iconassociations_key">category_iconassociations_key</string>
+    <string name="income">income</string>
+    <string name="expenditure">expenditure</string>
+
+    <string name="password_settings">password_settings</string>
+    <string name="password_key">password_key</string>
+    <string name="export_data">export_data</string>
+    <string name="export_data_local">export_data_local</string>
+    <string name="import_data_local">import_data_local</string>
+</resources>

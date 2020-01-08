@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FileChooserDialog</string>
+
+    <string name="title">Browse files...</string>
+    <string name="storage">storage</string>
+    <string name="sdcard">sdcard</string>
+</resources>

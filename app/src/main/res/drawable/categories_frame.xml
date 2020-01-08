@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape>
+            <solid android:color="#FF4543"></solid>
+            <stroke
+                android:width="2dp"
+                android:color="@color/darkGreen"
+                android:dashGap="3dp"
+                android:dashWidth="20dp" />
+        </shape>
+    </item>
+    <item
+        android:drawable="@android:drawable/ic_input_delete"
+        android:top="0dp">
+
+    </item>
+</layer-list>
