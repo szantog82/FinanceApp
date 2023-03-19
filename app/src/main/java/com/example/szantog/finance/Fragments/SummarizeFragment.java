@@ -29,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -46,6 +45,9 @@ public class SummarizeFragment extends Fragment implements View.OnClickListener,
 
     private ArrayList<EntryItem> items = new ArrayList<>();
     private Boolean isMonthly = true;
+    private Boolean isExpenditure = true;
+    private TextView incomeTextView;
+    private TextView expenditureTextView;
     private TextView monthlyTextView;
     private TextView annualTextView;
     private TextView currentMonthText;
@@ -78,7 +80,7 @@ public class SummarizeFragment extends Fragment implements View.OnClickListener,
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
-        return inflater.inflate(R.layout.history_fragment_layout, container, false);
+        return inflater.inflate(R.layout.summarize_fragment_layout, container, false);
     }
 
     @Override
@@ -87,8 +89,12 @@ public class SummarizeFragment extends Fragment implements View.OnClickListener,
 
         monthlyTextView = view.findViewById(R.id.historyfragment_monthly);
         annualTextView = view.findViewById(R.id.historyfragment_annual);
+        incomeTextView = view.findViewById(R.id.historyfragment_income);
+        expenditureTextView = view.findViewById(R.id.historyfragment_expenditure);
         monthlyTextView.setOnClickListener(this);
         annualTextView.setOnClickListener(this);
+        incomeTextView.setOnClickListener(this);
+        expenditureTextView.setOnClickListener(this);
         currentMonthText = view.findViewById(R.id.historyfragment_currentmonthtext);
         prevMonthButton = view.findViewById(R.id.historyfragment_prevmonth);
         nextMonthButton = view.findViewById(R.id.historyfragment_nextmonth);
@@ -109,7 +115,10 @@ public class SummarizeFragment extends Fragment implements View.OnClickListener,
         pairItems.clear();
         long totalSum = 0;
         for (EntryItem entryItem : items) {
-            if (entryItem.getSum() > 0) {
+            if (entryItem.getSum() > 0 && isExpenditure) {
+                continue;
+            }
+            if (entryItem.getSum() < 0 && !isExpenditure) {
                 continue;
             }
             int index = -1;
@@ -129,26 +138,36 @@ public class SummarizeFragment extends Fragment implements View.OnClickListener,
         for (int i = 0; i < pairItems.size(); i++) {
             pairItems.get(i).setPercent((float) pairItems.get(i).getSum() * 100f / (float) totalSum);
         }
-        monthlyBalanceText.setText(Tools.formatNumber(totalSum));
+        monthlyBalanceText.setText(Tools.formatNumber(totalSum, db.getCurrentPocketCurrency()));
         Collections.sort(pairItems);
         adapter.notifyDataSetChanged();
     }
 
     private void updateFragment() {
-        Date dateSet = new Date(System.currentTimeMillis() + Long.valueOf(currentVisibleMonth) * 1000 * 3600 * 24 * 30);
-        //currentVisibleDay is a negative integer!!!
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(dateSet);
+        Calendar calendar = setCalendar();
         items.clear();
         if (isMonthly) {
-            currentMonthText.setText(simpleDateFormatMonthly.format(dateSet));
+            currentMonthText.setText(simpleDateFormatMonthly.format(calendar.getTimeInMillis()));
             items.addAll(db.getCertainMonthlyData(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH)));
         } else {
             items.addAll(db.getCertainYearlyData(calendar.get(Calendar.YEAR)));
-            currentMonthText.setText(simpleDateFormatAnnual.format(dateSet));
+            currentMonthText.setText(simpleDateFormatAnnual.format(calendar.getTimeInMillis()));
         }
         updateTable();
+    }
+
+    private Calendar setCalendar() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        month += currentVisibleMonth; //currentVisibleDay is a negative integer!!!
+        while (month < 0) {
+            year--;
+            month += 12;
+        }
+        calendar.set(year, month, 1);
+        return calendar;
     }
 
     @Override
@@ -188,6 +207,18 @@ public class SummarizeFragment extends Fragment implements View.OnClickListener,
                 annualTextView.setBackgroundResource(R.color.lighterGray);
                 updateFragment();
                 break;
+            case R.id.historyfragment_income:
+                isExpenditure = false;
+                incomeTextView.setBackgroundResource(R.color.lighterGreen);
+                expenditureTextView.setBackgroundColor(Color.parseColor("#FFFFFF"));
+                updateFragment();
+                break;
+            case R.id.historyfragment_expenditure:
+                isExpenditure = true;
+                incomeTextView.setBackgroundColor(Color.parseColor("#FFFFFF"));
+                expenditureTextView.setBackgroundResource(R.color.lighterRed);
+                updateFragment();
+                break;
             default:
                 break;
         }
@@ -203,10 +234,7 @@ public class SummarizeFragment extends Fragment implements View.OnClickListener,
         params.setMarginEnd(10);
         listView.setLayoutParams(params);
         builder.setView(listView);
-        Date dateSet = new Date(System.currentTimeMillis() + Long.valueOf(currentVisibleMonth) * 1000 * 3600 * 24 * 30);
-        //currentVisibleDay is a negative integer!!!
-        Calendar calendar1 = Calendar.getInstance();
-        calendar1.setTime(dateSet);
+        Calendar calendar1 = setCalendar();
         ArrayList<EntryItem> items1 = new ArrayList<>();
         if (isMonthly) {
             items1 = db.getCertainMonthlyDataCategoryDefined(calendar1.get(Calendar.YEAR), calendar1.get(Calendar.MONTH), category);
@@ -216,7 +244,10 @@ public class SummarizeFragment extends Fragment implements View.OnClickListener,
         ArrayList<CategorySumPairItem> pairItems1 = new ArrayList<>();
         long totalSum = 0;
         for (EntryItem entryItem : items1) {
-            if (entryItem.getSum() > 0) {
+            if (entryItem.getSum() > 0 && isExpenditure) {
+                continue;
+            }
+            if (entryItem.getSum() < 0 && !isExpenditure) {
                 continue;
             }
             int index = -1;

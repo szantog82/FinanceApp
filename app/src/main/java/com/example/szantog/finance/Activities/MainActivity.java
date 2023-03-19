@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
         // tabs.setBackgroundColor(ContextCompat.getColor(this, R.color.darkblue));
         pager = (ViewPager) findViewById(R.id.wrapper_pager);
         pager.setOffscreenPageLimit(1);
-        final ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        final ViewPagerAdapter adapter = new ViewPagerAdapter(this, getSupportFragmentManager());
         pager.setAdapter(adapter);
         tabs.setupWithViewPager(pager);
     }

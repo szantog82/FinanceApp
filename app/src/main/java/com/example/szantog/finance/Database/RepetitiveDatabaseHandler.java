@@ -2,12 +2,15 @@ package com.example.szantog.finance.Database;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.example.szantog.finance.Models.EntryItem;
 import com.example.szantog.finance.Models.RepetitiveItem;
+import com.example.szantog.finance.R;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -20,8 +23,8 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
 
     private Context context;
 
-    private static final String DATABASE_NAME = "Finance";
-    private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_NAME = FinanceDatabaseHandler.DATABASE_NAME;
+    private static final int DATABASE_VERSION = FinanceDatabaseHandler.DATABASE_VERSION;
 
     private static final String TABLE_NAME = "repetitiveentries";
 
@@ -35,6 +38,9 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
     private static final String SUBCATEGORY = "subcategory";
     private static final String COLLECTION = "collection"; //all the primary keys (time) of members of repetitive instances are put here as string
     public static final String DIVIDER = "__div__";
+    private static final String POCKET = "pocket";
+
+    private SharedPreferences sharedPrefs;
 
     public static final String CREATE_TABLE = String.format("CREATE TABLE IF NOT EXISTS %s " +
                     "(%s INTEGER PRIMARY KEY, %s INTEGER, %s INTEGER, %s INTEGER, " +
@@ -45,6 +51,7 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
     public RepetitiveDatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
+        sharedPrefs = context.getSharedPreferences(context.getString(R.string.SHAREDPREF_MAINKEY), 0);
     }
 
     @Override
@@ -54,14 +61,10 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-        String query = String.format("CREATE TABLE IF NOT EXISTS %s " +
-                        "(%s INTEGER PRIMARY KEY, %s INTEGER, %s INTEGER, %s INTEGER, " +
-                        "%s INTEGER, %s INTEGER, %s TEXT, %s TEXT, %s TEXT)", TABLE_NAME,
-                TIME, SUM, STARTTIME, ENDTIME,
-                LATESTUPDATETIME, TURNOVER_MONTH, CATEGORY, SUBCATEGORY, COLLECTION);
-        sqLiteDatabase.execSQL(query);
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
+        if (newVersion > 1) {
+            FinanceDatabaseHandler.upgradeFromOneToTwo(sqLiteDatabase, oldVersion, newVersion, sharedPrefs, context);
+        }
     }
 
     public void createTable() {
@@ -95,11 +98,13 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
             long sum = cursor.getLong(cursor.getColumnIndex(SUM));
             long startTime = cursor.getLong(cursor.getColumnIndex(STARTTIME));
             long endTime = cursor.getLong(cursor.getColumnIndex(ENDTIME));
+            long latestUpdateTime = cursor.getLong(cursor.getColumnIndex(LATESTUPDATETIME));
             int turnover = cursor.getInt(cursor.getColumnIndex(TURNOVER_MONTH));
             String collection = cursor.getString(cursor.getColumnIndex(COLLECTION));
             String category = cursor.getString(cursor.getColumnIndex(CATEGORY));
             String subCategory = cursor.getString(cursor.getColumnIndex(SUBCATEGORY));
-            output.add(new RepetitiveItem(time, sum, startTime, endTime, turnover, collection, category, subCategory));
+            int pocket = cursor.getInt(cursor.getColumnIndex("pocket"));
+            output.add(new RepetitiveItem(time, sum, startTime, endTime, latestUpdateTime, turnover, collection, category, subCategory, pocket));
         }
         cursor.close();
         db.close();
@@ -145,6 +150,9 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
         values.put(TURNOVER_MONTH, item.getTurnoverMonth());
         values.put(CATEGORY, item.getCategory());
         values.put(SUBCATEGORY, item.getSubCategory());
+        if (item.getLatestUpdateTime() != 0) {
+            values.put(LATESTUPDATETIME, item.getLatestUpdateTime());
+        }
         db.insert(TABLE_NAME, null, values);
         values.clear();
         if (item.getStartTime() < System.currentTimeMillis()) {
@@ -159,6 +167,23 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
             values.put(SUBCATEGORY, item.getSubCategory());
             db.insert(FinanceDatabaseHandler.TABLE_NAME, null, values);
         }
+        db.close();
+    }
+
+    public void insertDataFromBackup(RepetitiveItem item) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(TIME, System.currentTimeMillis());
+        values.put(SUM, item.getSum());
+        values.put(STARTTIME, item.getStartTime());
+        values.put(ENDTIME, item.getEndTime());
+        values.put(LATESTUPDATETIME, item.getLatestUpdateTime());
+        values.put(TURNOVER_MONTH, item.getTurnoverMonth());
+        values.put(COLLECTION, item.getCollection());
+        values.put(CATEGORY, item.getCategory());
+        values.put(SUBCATEGORY, item.getSubCategory());
+        values.put(POCKET, item.getPocket());
+        db.insert(TABLE_NAME, null, values);
         db.close();
     }
 
@@ -177,12 +202,6 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
     public void deleteData(long time) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_NAME, TIME + "=" + time, null);
-        db.close();
-    }
-
-    public void deleteAllData() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_NAME, null, null);
         db.close();
     }
 
@@ -216,6 +235,7 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
                 int latestUpdateMonth = calendar.get(Calendar.MONTH);
                 int latestUpdateDay = calendar.get(Calendar.DAY_OF_MONTH);
                 int turnoverMonth = cursor.getInt(cursor.getColumnIndex(TURNOVER_MONTH));
+                int pocket = cursor.getInt(cursor.getColumnIndex("pocket"));
                 int nextUpdateYear = 0;
                 int nextUpdateMonth = 0;
                 if (latestUpdateMonth + turnoverMonth > 11) {
@@ -235,7 +255,7 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
                         long newTime = System.currentTimeMillis() + (long) (Math.random() * 100000); //random values to avoid same values
                         newItemPrimaryKeys.add(newTime);
                         output.add(new EntryItem(newTime, sum, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-                                calendar.get(Calendar.DAY_OF_MONTH), cat, subcat));
+                                calendar.get(Calendar.DAY_OF_MONTH), cat, subcat, pocket));
                         latestUpdateYear = nextUpdateYear;
                         latestUpdateMonth = nextUpdateMonth;
                         if (latestUpdateMonth + turnoverMonth > 11) {
@@ -268,6 +288,12 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
             db.close();
             return output;
         }
+    }
+
+    public void deleteAllEntries() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_NAME, null, null);
+        db.close();
     }
 
     public void updateCollection(String category, String subCategory, long sum, String collection) {

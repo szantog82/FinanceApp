@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.example.szantog.finance.Database.FinanceDatabaseHandler;
 import com.example.szantog.finance.Models.EntryItem;
 import com.example.szantog.finance.R;
 import com.example.szantog.finance.Tools;
@@ -20,6 +21,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Created by szantog on 2018.03.17..
@@ -34,10 +36,13 @@ public class DailyListViewAdapter extends BaseAdapter {
     }
 
     private Context context;
+    private Boolean isFakeMode;
+    private Random random = new Random();
     private ArrayList<EntryItem> items;
     private ArrayList<Integer> selectedPosition;
     private ArrayList<Boolean> isRepetitives;
     private DailyAdapterListener listener;
+    private FinanceDatabaseHandler financeDb;
 
     private JSONObject categoryIconObject;
 
@@ -46,6 +51,7 @@ public class DailyListViewAdapter extends BaseAdapter {
         this.items = items;
         this.selectedPosition = selectedPosition;
         this.isRepetitives = isRepetitives;
+        financeDb = new FinanceDatabaseHandler(context);
 
         SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.SHAREDPREF_MAINKEY), 0);
         try {
@@ -54,6 +60,11 @@ public class DailyListViewAdapter extends BaseAdapter {
             e.printStackTrace();
         } catch (NullPointerException e) {
             e.printStackTrace();
+        }
+        if (prefs.getBoolean(context.getString(R.string.fake_data), false)) {
+            isFakeMode = true;
+        } else {
+            isFakeMode = false;
         }
     }
 
@@ -90,22 +101,32 @@ public class DailyListViewAdapter extends BaseAdapter {
 
         if (items.get(i).getSum() > 0) {
             try {
-                if (categoryIconObject != null && categoryIconObject.getJSONObject(context.getString(R.string.income)).getInt(items.get(i).getCategory()) >= 0) {
+                if (isFakeMode) {
                     icon.setVisibility(View.VISIBLE);
-                    icon.setImageResource(IconGridAdapter.icons[categoryIconObject.getJSONObject(context.getString(R.string.income)).getInt(items.get(i).getCategory())]);
+                    icon.setImageResource(IconGridAdapter.icons[random.nextInt(IconGridAdapter.icons.length)]);
                 } else {
-                    icon.setVisibility(View.GONE);
+                    if (categoryIconObject != null && categoryIconObject.getJSONObject(context.getString(R.string.income)).getInt(items.get(i).getCategory()) >= 0) {
+                        icon.setVisibility(View.VISIBLE);
+                        icon.setImageResource(IconGridAdapter.icons[categoryIconObject.getJSONObject(context.getString(R.string.income)).getInt(items.get(i).getCategory())]);
+                    } else {
+                        icon.setVisibility(View.GONE);
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         } else {
             try {
-                if (categoryIconObject != null && categoryIconObject.getJSONObject(context.getString(R.string.expenditure)).getInt(items.get(i).getCategory()) >= 0) {
+                if (isFakeMode) {
                     icon.setVisibility(View.VISIBLE);
-                    icon.setImageResource(IconGridAdapter.icons[categoryIconObject.getJSONObject(context.getString(R.string.expenditure)).getInt(items.get(i).getCategory())]);
+                    icon.setImageResource(IconGridAdapter.icons[random.nextInt(IconGridAdapter.icons.length)]);
                 } else {
-                    icon.setVisibility(View.GONE);
+                    if (categoryIconObject != null && categoryIconObject.getJSONObject(context.getString(R.string.expenditure)).getInt(items.get(i).getCategory()) >= 0) {
+                        icon.setVisibility(View.VISIBLE);
+                        icon.setImageResource(IconGridAdapter.icons[categoryIconObject.getJSONObject(context.getString(R.string.expenditure)).getInt(items.get(i).getCategory())]);
+                    } else {
+                        icon.setVisibility(View.GONE);
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -122,7 +143,7 @@ public class DailyListViewAdapter extends BaseAdapter {
 
         category.setText(items.get(i).getCategory());
         subCategory.setText(items.get(i).getSubCategory());
-        sum.setText(Tools.formatNumber(items.get(i).getSum()));
+        sum.setText(Tools.formatNumber(items.get(i).getSum(), financeDb.getCurrentPocketCurrency()));
         RelativeLayout layout = view.findViewById(R.id.daily_listitem_rootlayout);
         if (selectedPosition.size() > 0 && selectedPosition.get(0) == i) {
             layout.setBackgroundResource(R.color.lighterblue);

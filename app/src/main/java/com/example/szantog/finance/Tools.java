@@ -17,7 +17,13 @@ public class Tools {
     private static DecimalFormat decimalFormat = new DecimalFormat("###,###,###");
 
     public static String formatNumber(long number) {
+
         return decimalFormat.format(number) + " Ft";
+    }
+
+    public static String formatNumber(long number, String currency) {
+
+        return decimalFormat.format(number) + " " + currency;
     }
 
     public static String calculateBalanceFromList(ArrayList<EntryItem> items) {
@@ -26,6 +32,15 @@ public class Tools {
             sum += item.getSum();
         }
         return decimalFormat.format(sum) + " Ft";
+    }
+
+
+    public static String calculateBalanceFromList(ArrayList<EntryItem> items, String currency) {
+        long sum = 0;
+        for (EntryItem item : items) {
+            sum += item.getSum();
+        }
+        return decimalFormat.format(sum) + " " + currency;
     }
 
     public static String calculateBalanceFromList(ArrayList<EntryItem> items, long number) {

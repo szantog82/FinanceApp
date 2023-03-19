@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:id="@+id/pocket_dialog_new_pocket_name_edittext"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@id/pocket_dialog_add_new_pocket_name_title"
+        app:layout_constraintTop_toBottomOf="@id/pocket_dialog_add_new_pocket_title" />
+
+    <EditText
+        android:id="@+id/pocket_dialog_new_pocket_currency_edittext"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@id/pocket_dialog_add_new_pocket_currency_title"
+        app:layout_constraintTop_toTopOf="@id/pocket_dialog_new_pocket_name_edittext" />
+
+    <Spinner
+        android:id="@+id/pocket_dialog_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@id/pocket_dialog_pocket_text"
+        app:layout_constraintTop_toTopOf="@id/pocket_dialog_pocket_text" />
+
+    <TextView
+        android:id="@+id/pocket_dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Zseb választás"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/pocket_dialog_pocket_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Zsebek:"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pocket_dialog_title" />
+
+    <TextView
+        android:id="@+id/pocket_dialog_currency_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="Pénzegység:"
+        app:layout_constraintLeft_toRightOf="@id/pocket_dialog_spinner"
+        app:layout_constraintTop_toTopOf="@id/pocket_dialog_spinner" />
+
+    <TextView
+        android:id="@+id/pocket_dialog_currency_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="..."
+        app:layout_constraintLeft_toRightOf="@id/pocket_dialog_currency_title"
+        app:layout_constraintTop_toTopOf="@id/pocket_dialog_currency_title" />
+
+    <TextView
+        android:id="@+id/pocket_dialog_add_new_pocket_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="Új zseb hozzáadása"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pocket_dialog_pocket_text" />
+
+    <TextView
+        android:id="@+id/pocket_dialog_add_new_pocket_name_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Név:"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pocket_dialog_add_new_pocket_title" />
+
+
+    <TextView
+        android:id="@+id/pocket_dialog_add_new_pocket_currency_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pénzegység"
+        app:layout_constraintLeft_toRightOf="@id/pocket_dialog_new_pocket_name_edittext"
+        app:layout_constraintTop_toTopOf="@id/pocket_dialog_new_pocket_name_edittext" />
+
+</android.support.constraint.ConstraintLayout>

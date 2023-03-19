@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -20,6 +21,7 @@ import android.widget.TextView;
 
 import com.example.szantog.finance.Adapters.HistoryListViewAdapter;
 import com.example.szantog.finance.Database.FinanceDatabaseHandler;
+import com.example.szantog.finance.FakeDataGenerator;
 import com.example.szantog.finance.Models.EntryItem;
 import com.example.szantog.finance.R;
 import com.example.szantog.finance.Tools;
@@ -33,6 +35,9 @@ import java.util.Collections;
  */
 
 public class SQLQueryActivity extends Activity implements View.OnClickListener {
+
+    private Boolean isFakeMode;
+    private FakeDataGenerator fakeDataGenerator;
 
     private static final Character[] NUM_OPERATORS = {'=', '<', '>'};
     private static final String[] CAT_OPERATORS = {"=", "LIKE"};
@@ -63,6 +68,12 @@ public class SQLQueryActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.sqlquery_activity_layout);
+        SharedPreferences sharedPrefs = getSharedPreferences(getString(R.string.SHAREDPREF_MAINKEY), 0);
+        if (sharedPrefs.getBoolean(getString(R.string.fake_data), true)) {
+            isFakeMode = true;
+        } else {
+            isFakeMode = false;
+        }
 
         sumEditText = findViewById(R.id.custom_sqlquery_sum);
         categoryEditText = findViewById(R.id.custom_sqlquery_category);
@@ -94,12 +105,26 @@ public class SQLQueryActivity extends Activity implements View.OnClickListener {
         sumText.setTextColor(Color.BLUE);
         ListView listView = new ListView(this);
         listView.setPadding(5, 5, 5, 5);
+        if (timeToSet == 0) {
+            timeToSet = System.currentTimeMillis();
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(timeToSet);
+            timeToTextView.setText(convertDateToTextviewFormat(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)));
+        }
         linearLayout.addView(sumText);
         linearLayout.addView(listView);
-        FinanceDatabaseHandler db = new FinanceDatabaseHandler(this);
-        ArrayList<EntryItem> itemsFound = db.customQuery(sumEditText.getText().toString(), (Character) sumSpinner.getSelectedItem(), timeFromSet,
-                timeToSet, categoryEditText.getText().toString(), (String) catSpinner.getSelectedItem(),
-                subcategoryEditText.getText().toString(), (String) subcatSpinner.getSelectedItem());
+        ArrayList<EntryItem> itemsFound = new ArrayList<>();
+        if (isFakeMode) {
+            fakeDataGenerator = new FakeDataGenerator();
+            itemsFound = fakeDataGenerator.customQuery(sumEditText.getText().toString(), (Character) sumSpinner.getSelectedItem(), timeFromSet,
+                    timeToSet, categoryEditText.getText().toString(), (String) catSpinner.getSelectedItem(),
+                    subcategoryEditText.getText().toString(), (String) subcatSpinner.getSelectedItem());
+        } else {
+            FinanceDatabaseHandler db = new FinanceDatabaseHandler(this);
+            itemsFound = db.customQuery(sumEditText.getText().toString(), (Character) sumSpinner.getSelectedItem(), timeFromSet,
+                    timeToSet, categoryEditText.getText().toString(), (String) catSpinner.getSelectedItem(),
+                    subcategoryEditText.getText().toString(), (String) subcatSpinner.getSelectedItem());
+        }
         Collections.sort(itemsFound);
         HistoryListViewAdapter historyListViewAdapter = new HistoryListViewAdapter(this, itemsFound);
         listView.setAdapter(historyListViewAdapter);
@@ -128,11 +153,11 @@ public class SQLQueryActivity extends Activity implements View.OnClickListener {
                 @Override
                 public void onDateSet(DatePicker datePickerView, int year, int month, int dayOfMonth) {
                     if (view.getId() == R.id.custom_sqlquery_timefrom) {
-                        timeFromTextView.setText(String.valueOf(year) + ". " + String.valueOf(month + 1) + ". " + String.valueOf(dayOfMonth));
+                        timeFromTextView.setText(convertDateToTextviewFormat(year, month, dayOfMonth));
                         calendar.set(year, month, dayOfMonth);
                         timeFromSet = calendar.getTimeInMillis();
                     } else if (view.getId() == R.id.custom_sqlquery_timeto) {
-                        timeToTextView.setText(String.valueOf(year) + ". " + String.valueOf(month + 1) + ". " + String.valueOf(dayOfMonth));
+                        timeToTextView.setText(convertDateToTextviewFormat(year, month, dayOfMonth));
                         calendar.set(year, month, dayOfMonth);
                         timeToSet = calendar.getTimeInMillis();
                     }
@@ -140,5 +165,9 @@ public class SQLQueryActivity extends Activity implements View.OnClickListener {
             }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
             dialog.show();
         }
+    }
+
+    private String convertDateToTextviewFormat(int year, int month, int dayOfMonth) {
+        return String.format("%d. %d. %d", year, month + 1, dayOfMonth);
     }
 }

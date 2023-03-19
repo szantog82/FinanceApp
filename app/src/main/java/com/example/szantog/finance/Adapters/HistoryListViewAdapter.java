@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.szantog.finance.Database.FinanceDatabaseHandler;
 import com.example.szantog.finance.Models.EntryItem;
 import com.example.szantog.finance.R;
 import com.example.szantog.finance.Tools;
@@ -27,12 +28,14 @@ public class HistoryListViewAdapter extends BaseAdapter {
 
     private Context context;
     private ArrayList<EntryItem> items;
+    private FinanceDatabaseHandler financeDb;
 
     private JSONObject categoryIconObject;
 
     public HistoryListViewAdapter(Context context, ArrayList<EntryItem> items) {
         this.context = context;
         this.items = items;
+        financeDb = new FinanceDatabaseHandler(context);
 
         SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.SHAREDPREF_MAINKEY), 0);
         try {
@@ -98,7 +101,7 @@ public class HistoryListViewAdapter extends BaseAdapter {
         date.setText(items.get(i).getStringDate());
         category.setText(items.get(i).getCategory());
         subCategory.setText(items.get(i).getSubCategory());
-        sum.setText(Tools.formatNumber(items.get(i).getSum()));
+        sum.setText(Tools.formatNumber(items.get(i).getSum(), financeDb.getCurrentPocketCurrency()));
         if (items.get(i).getSum() < 0) {
             category.setTextColor(ContextCompat.getColor(context, R.color.darkRed));
             subCategory.setTextColor(ContextCompat.getColor(context, R.color.darkRed));

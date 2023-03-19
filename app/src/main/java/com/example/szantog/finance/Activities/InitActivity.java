@@ -27,6 +27,7 @@ import java.util.ArrayList;
 public class InitActivity extends AppCompatActivity {
 
     private SharedPreferences sharedPrefs;
+    private SharedPreferences.Editor editor;
     private TextView pwdTextView;
     private String enteredPassword;
 
@@ -34,11 +35,12 @@ public class InitActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //comment
+        //commevnt
 
 
         setContentView(R.layout.init_layout);
         sharedPrefs = getSharedPreferences(getString(R.string.SHAREDPREF_MAINKEY), 0);
+        editor = sharedPrefs.edit();
 
         //checking if there is new repetitive balance which needs to be added
 
@@ -70,7 +72,7 @@ public class InitActivity extends AppCompatActivity {
             if (newItems.size() > 0) {
                 FinanceDatabaseHandler db = new FinanceDatabaseHandler(this);
                 for (EntryItem item : newItems) {
-                    db.insertEntry(item);
+                    db.insertEntryAfterCheck(item);
                 }
             }
         }
@@ -78,39 +80,14 @@ public class InitActivity extends AppCompatActivity {
         //starting the app
 
 
-       /* String proba = "{\n" +
-                "    \"_id\": {\n" +
-                "        \"$oid\": \"5ac32dfa268b8e0014d06494\"\n" +
-                "    },\n" +
-                "    \"username\": \"Gábor\",\n" +
-                "    \"initialbalance\": \"410000\",\n" +
-                "    \"balance\": \"[{\\\"category\\\":\\\"Szórakozás\\\",\\\"subCategory\\\":\\\"uszoda\\\",\\\"time\\\":1521225305319,\\\"sum\\\":-5000,\\\"day\\\":16,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Eating-out\\\",\\\"subCategory\\\":\\\"street food\\\",\\\"time\\\":1521225318119,\\\"sum\\\":-10000,\\\"day\\\":16,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Bevásárlás\\\",\\\"subCategory\\\":\\\"piac\\\",\\\"time\\\":1521274836075,\\\"sum\\\":-4200,\\\"day\\\":17,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Autó\\\",\\\"subCategory\\\":\\\"benzin\\\",\\\"time\\\":1521275474808,\\\"sum\\\":-8000,\\\"day\\\":17,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Bevásárlás\\\",\\\"subCategory\\\":\\\"aldi\\\",\\\"time\\\":1521278016288,\\\"sum\\\":-13705,\\\"day\\\":17,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Egyéb\\\",\\\"subCategory\\\":\\\"ajándék\\\",\\\"time\\\":1521530791604,\\\"sum\\\":-650,\\\"day\\\":20,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Bevásárlás\\\",\\\"subCategory\\\":\\\"olívaolaj\\\",\\\"time\\\":1521547306922,\\\"sum\\\":-10300,\\\"day\\\":20,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Étel\\\",\\\"subCategory\\\":\\\"\\\",\\\"time\\\":1521558284765,\\\"sum\\\":-310,\\\"day\\\":20,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Telefon\\\",\\\"subCategory\\\":\\\"\\\",\\\"time\\\":1521633544387,\\\"sum\\\":-7000,\\\"day\\\":21,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Gyerek\\\",\\\"subCategory\\\":\\\"bicikli\\\",\\\"time\\\":1521656427972,\\\"sum\\\":-12850,\\\"day\\\":21,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"e-bay\\\",\\\"subCategory\\\":\\\"\\\",\\\"time\\\":1521794334843,\\\"sum\\\":-5000,\\\"day\\\":23,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Háztartás\\\",\\\"subCategory\\\":\\\"főgáz\\\",\\\"time\\\":1521813647897,\\\"sum\\\":-1033,\\\"day\\\":23,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Háztartás\\\",\\\"subCategory\\\":\\\"műszaki\\\",\\\"time\\\":1521820320308,\\\"sum\\\":-10940,\\\"day\\\":23,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Eating-out\\\",\\\"subCategory\\\":\\\"street food\\\",\\\"time\\\":1521891786486,\\\"sum\\\":-1800,\\\"day\\\":24,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Bevásárlás\\\",\\\"subCategory\\\":\\\"aldi\\\",\\\"time\\\":1521906665900,\\\"sum\\\":-17620,\\\"day\\\":24,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Önismeret\\\",\\\"subCategory\\\":\\\"\\\",\\\"time\\\":1521977787816,\\\"sum\\\":-30000,\\\"day\\\":25,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Eating-out\\\",\\\"subCategory\\\":\\\"street food\\\",\\\"time\\\":1521982039572,\\\"sum\\\":-5900,\\\"day\\\":25,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Étel\\\",\\\"subCategory\\\":\\\"\\\",\\\"time\\\":1522040949391,\\\"sum\\\":-420,\\\"day\\\":26,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Autó\\\",\\\"subCategory\\\":\\\"benzin\\\",\\\"time\\\":1522082705255,\\\"sum\\\":-10100,\\\"day\\\":26,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Önismeret\\\",\\\"subCategory\\\":\\\"\\\",\\\"time\\\":1522159676019,\\\"sum\\\":-20000,\\\"day\\\":27,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Egészség\\\",\\\"subCategory\\\":\\\"fodrász\\\",\\\"time\\\":1522328679679,\\\"sum\\\":-2700,\\\"day\\\":29,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Gyerek\\\",\\\"subCategory\\\":\\\"játék\\\",\\\"time\\\":1522329566478,\\\"sum\\\":-2990,\\\"day\\\":29,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Gyerek\\\",\\\"subCategory\\\":\\\"játék\\\",\\\"time\\\":1522352037597,\\\"sum\\\":-400,\\\"day\\\":29,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Gyerek\\\",\\\"subCategory\\\":\\\"babysitter\\\",\\\"time\\\":1522430940050,\\\"sum\\\":-40000,\\\"day\\\":30,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Háztartás\\\",\\\"subCategory\\\":\\\"kertészkedés\\\",\\\"time\\\":1522482722740,\\\"sum\\\":-7850,\\\"day\\\":31,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Bevásárlás\\\",\\\"subCategory\\\":\\\"biobolt\\\",\\\"time\\\":1522508490442,\\\"sum\\\":-470,\\\"day\\\":31,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Gyerek\\\",\\\"subCategory\\\":\\\"játszóház\\\",\\\"time\\\":1522508511975,\\\"sum\\\":-975,\\\"day\\\":31,\\\"month\\\":2,\\\"year\\\":2018},{\\\"category\\\":\\\"Egyéb\\\",\\\"subCategory\\\":\\\"banki költségek\\\",\\\"time\\\":1522598488374,\\\"sum\\\":-400,\\\"day\\\":1,\\\"month\\\":3,\\\"year\\\":2018},{\\\"category\\\":\\\"Gyerek\\\",\\\"subCategory\\\":\\\"játék\\\",\\\"time\\\":1522739585103,\\\"sum\\\":-2395,\\\"day\\\":3,\\\"month\\\":3,\\\"year\\\":2018}]\",\n" +
-                "    \"categorylist\": \"[\\\"Szórakozás\\\",\\\"Eating-out\\\",\\\"Bevásárlás\\\",\\\"Autó\\\",\\\"Egyéb\\\",\\\"Étel\\\",\\\"Telefon\\\",\\\"Gyerek\\\",\\\"e-bay\\\",\\\"Háztartás\\\",\\\"Önismeret\\\",\\\"Egészség\\\"]\",\n" +
-                "    \"repetitivedata\": \"[{\\\"category\\\":\\\"Egyéb\\\",\\\"collection\\\":\\\"1522598488374__div__\\\",\\\"subCategory\\\":\\\"banki költségek\\\",\\\"turnoverMonth\\\":1,\\\"endTime\\\":0,\\\"sum\\\":-400,\\\"time\\\":1522598488327,\\\"startTime\\\":1522598464039}]\"\n" +
-                "}";
-        try {
-            JSONObject obj = new JSONObject(proba);
-            String arrStr = obj.getString("balance");
-            JSONArray arr = new JSONArray(arrStr);
-            ArrayList<EntryItem> items = new ArrayList<>();
-            for (int i = 0; i < arr.length(); i++) {
-               JSONObject obj2 = new JSONObject(arr.getString(i));
-               Log.e("cate", obj2.getString("category"));
-               // items.add((EntryItem) obj2);
-            }
-            for (EntryItem item : items) {
-                Log.e("cat", item.getCategory());
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }*/
-
        /* Intent intent = AccountManager.newChooseAccountIntent(null, null,
                 new String[]{"com.google", "com.google.android.legacyimap"},
                 false, null, null, null, null);
         startActivityForResult(intent, 123);*/
 
         if (sharedPrefs.getString(getString(R.string.password_key), null) == null) {
+            editor.putBoolean(getString(R.string.fake_data), false);
+            editor.apply();
             Intent startIntent = new Intent(InitActivity.this, MainActivity.class);
             startActivity(startIntent);
             finish();
@@ -122,6 +99,15 @@ public class InitActivity extends AppCompatActivity {
 
     private void checkPwd() {
         if (enteredPassword.equals(sharedPrefs.getString(getString(R.string.password_key), null))) {
+            editor.putBoolean(getString(R.string.fake_data), false);
+            editor.apply();
+            Intent startIntent = new Intent(InitActivity.this, MainActivity.class);
+            startActivity(startIntent);
+            finish();
+        } else if (enteredPassword.equals("1234")) {
+            Toast.makeText(this, "Entering fake mode", Toast.LENGTH_LONG).show();
+            editor.putBoolean(getString(R.string.fake_data), true);
+            editor.apply();
             Intent startIntent = new Intent(InitActivity.this, MainActivity.class);
             startActivity(startIntent);
             finish();

@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.szantog.finance.Database.FinanceDatabaseHandler;
 import com.example.szantog.finance.Fragments.CategorySumPairItem;
 import com.example.szantog.finance.R;
 import com.example.szantog.finance.Tools;
@@ -17,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Created by szantog on 2018.03.20..
@@ -25,13 +27,17 @@ import java.util.ArrayList;
 public class SummarizeListViewAdapter extends BaseAdapter {
 
     private Context context;
+    private Boolean isFakeMode;
+    private Random random = new Random();
     private ArrayList<CategorySumPairItem> items;
+    private FinanceDatabaseHandler financeDb;
 
     private JSONObject categoryIconObject;
 
     public SummarizeListViewAdapter(Context context, ArrayList<CategorySumPairItem> items) {
         this.context = context;
         this.items = items;
+        financeDb = new FinanceDatabaseHandler(context);
 
         SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.SHAREDPREF_MAINKEY), 0);
         try {
@@ -40,6 +46,11 @@ public class SummarizeListViewAdapter extends BaseAdapter {
             e.printStackTrace();
         } catch (NullPointerException e) {
             e.printStackTrace();
+        }
+        if (prefs.getBoolean(context.getString(R.string.fake_data), false)) {
+            isFakeMode = true;
+        } else {
+            isFakeMode = false;
         }
     }
 
@@ -70,11 +81,16 @@ public class SummarizeListViewAdapter extends BaseAdapter {
         TextView percent = view.findViewById(R.id.summarize_listitem_percent);
 
         try {
-            if (categoryIconObject != null && categoryIconObject.getJSONObject(context.getString(R.string.expenditure)).getInt(items.get(i).getCategory()) >= 0) {
+            if (isFakeMode) {
                 icon.setVisibility(View.VISIBLE);
-                icon.setImageResource(IconGridAdapter.icons[categoryIconObject.getJSONObject(context.getString(R.string.expenditure)).getInt(items.get(i).getCategory())]);
+                icon.setImageResource(IconGridAdapter.icons[random.nextInt(IconGridAdapter.icons.length)]);
             } else {
-                icon.setVisibility(View.GONE);
+                if (categoryIconObject != null && categoryIconObject.getJSONObject(context.getString(R.string.expenditure)).getInt(items.get(i).getCategory()) >= 0) {
+                    icon.setVisibility(View.VISIBLE);
+                    icon.setImageResource(IconGridAdapter.icons[categoryIconObject.getJSONObject(context.getString(R.string.expenditure)).getInt(items.get(i).getCategory())]);
+                } else {
+                    icon.setVisibility(View.GONE);
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -84,7 +100,7 @@ public class SummarizeListViewAdapter extends BaseAdapter {
         } else {
             category.setText(items.get(i).getCategory());
         }
-        sum.setText(Tools.formatNumber(items.get(i).getSum()));
+        sum.setText(Tools.formatNumber(items.get(i).getSum(), financeDb.getCurrentPocketCurrency()));
         percent.setText(String.format("%.2f", items.get(i).getPercent()) + " %");
         return view;
     }

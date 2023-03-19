@@ -94,6 +94,7 @@
                 android:textSize="26sp" />
 
             <TextView
+                android:id="@+id/new_edit_dialog_currency"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"

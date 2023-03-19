@@ -16,27 +16,35 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.szantog.finance.Activities.MainActivity;
 import com.example.szantog.finance.Activities.RepetitiveEditActivity;
 import com.example.szantog.finance.Activities.SettingsActivity;
 import com.example.szantog.finance.Adapters.DailyListViewAdapter;
 import com.example.szantog.finance.Database.FinanceDatabaseHandler;
 import com.example.szantog.finance.Database.RepetitiveDatabaseHandler;
 import com.example.szantog.finance.Models.EntryItem;
+import com.example.szantog.finance.Models.PocketItem;
 import com.example.szantog.finance.Models.RepetitiveItem;
 import com.example.szantog.finance.NewEditAlertDialog;
 import com.example.szantog.finance.R;
 import com.example.szantog.finance.Tools;
 
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class DailyFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener, NewEditAlertDialog.newEditAlertDialogListener, DailyListViewAdapter.DailyAdapterListener {
@@ -84,6 +92,67 @@ public class DailyFragment extends Fragment implements View.OnClickListener, Ada
             startActivity(repetitiveIntent);
         } else if (item.getItemId() == R.id.menu_quit) {
             getActivity().finish();
+        } else if (item.getItemId() == R.id.daily_menu_change_pocket) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            LayoutInflater inflater = getLayoutInflater();
+            View view = inflater.inflate(R.layout.pocket_change_layout, null);
+            final TextView currencyText = view.findViewById(R.id.pocket_dialog_currency_text);
+            final EditText newPocketNameEditText = view.findViewById(R.id.pocket_dialog_new_pocket_name_edittext);
+            final EditText newPocketCurrencyEditText = view.findViewById(R.id.pocket_dialog_new_pocket_currency_edittext);
+            Spinner spinner = view.findViewById(R.id.pocket_dialog_spinner);
+            ArrayList<PocketItem> pockets = financeDb.getPockets();
+            final List<Integer> pocketIds = new ArrayList<>();
+            final List<String> pocketNames = new ArrayList<>();
+            final List<String> pocketCurrencies = new ArrayList<>();
+            for (PocketItem pocketItem : pockets) {
+                pocketIds.add(pocketItem.getId());
+                pocketNames.add(pocketItem.getName());
+                pocketCurrencies.add(pocketItem.getCurrency());
+            }
+            ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_spinner_item, pocketNames);
+            spinner.setAdapter(arrayAdapter);
+            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                    currencyText.setText(pocketCurrencies.get(position));
+                    Toast.makeText(getActivity(), "Az alábbi zseb kiválasztva: " + pocketNames.get(position), Toast.LENGTH_LONG).show();
+                    sharedEditor.putInt(getActivity().getString(R.string.pocket_sharedpref_key), pocketIds.get(position));
+                    sharedEditor.apply();
+                    updateFragment();
+                    updateAdapter();
+                    ((MainActivity) getActivity()).getSupportActionBar().setTitle(pocketNames.get(position));
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+            builder.setView(view);
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    String newPocketName = newPocketNameEditText.getText().toString();
+                    String newPocketCurrency = newPocketCurrencyEditText.getText().toString();
+                    if (newPocketName.length() > 1 && newPocketCurrency.length() > 1) {
+                        long newId = financeDb.addNewPocket(newPocketName, newPocketCurrency);
+                        if (newId == -1) {
+                            Toast.makeText(getActivity(), "Nem sikerült hozzáadni...", Toast.LENGTH_LONG).show();
+                        } else {
+                            sharedEditor.putInt(getActivity().getString(R.string.pocket_sharedpref_key), (int) newId);
+                            sharedEditor.apply();
+                            Toast.makeText(getActivity(), "Zseb hozzáadva", Toast.LENGTH_LONG).show();
+                            ((MainActivity) getActivity()).getSupportActionBar().setTitle(newPocketName);
+                            updateFragment();
+                            updateAdapter();
+                        }
+                    } else {
+                        Toast.makeText(getActivity(), "Túl rövid adatok!", Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            builder.setNegativeButton("Mégse", null);
+            builder.show();
         }
         return true;
     }
@@ -105,6 +174,8 @@ public class DailyFragment extends Fragment implements View.OnClickListener, Ada
         financeDb = new FinanceDatabaseHandler(getContext());
         repetitiveDb = new RepetitiveDatabaseHandler(getContext());
         repetitiveCollections = repetitiveDb.getAllCollections();
+
+        ((MainActivity) getActivity()).getSupportActionBar().setTitle(financeDb.getPocketNameById(sharedPrefs.getInt(getActivity().getString(R.string.pocket_sharedpref_key), 1)));
 
         addButton = view.findViewById(R.id.daily_FAB);
         prevDayButton = view.findViewById(R.id.dailyfragment_prevday);
@@ -132,7 +203,7 @@ public class DailyFragment extends Fragment implements View.OnClickListener, Ada
     }
 
     private void updateFragment() {
-        cumulatedBalanceText.setText(Tools.formatNumber(Long.valueOf(sharedPrefs.getString(getString(R.string.initialbalance_key), "0")) + financeDb.getTotalBalance()));
+        cumulatedBalanceText.setText(Tools.formatNumber(financeDb.getCurrentInitialValue() + financeDb.getTotalBalance(), financeDb.getCurrentPocketCurrency()));
         String currentDate;
         Date dateSet = new Date(System.currentTimeMillis() + Long.valueOf(currentVisibleDay) * 1000 * 3600 * 24);
         switch (currentVisibleDay) {
@@ -166,7 +237,7 @@ public class DailyFragment extends Fragment implements View.OnClickListener, Ada
         }
         dailyListViewAdapter.notifyDataSetChanged();
 
-        dailyBalanceText.setText(Tools.calculateBalanceFromList(currentEntryItems));
+        dailyBalanceText.setText(Tools.calculateBalanceFromList(currentEntryItems, financeDb.getCurrentPocketCurrency()));
     }
 
     private void updateAdapter() {

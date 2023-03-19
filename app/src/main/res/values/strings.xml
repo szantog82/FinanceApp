@@ -12,10 +12,13 @@
     <string name="category_iconassociations_key">category_iconassociations_key</string>
     <string name="income">income</string>
     <string name="expenditure">expenditure</string>
+    <string name="pocket_sharedpref_key">pocket_sharedpref_key</string>
 
     <string name="password_settings">password_settings</string>
     <string name="password_key">password_key</string>
+    <string name="fake_data">fake_data</string>
     <string name="export_data">export_data</string>
     <string name="export_data_local">export_data_local</string>
+    <string name="import_data_net">import_data_net</string>
     <string name="import_data_local">import_data_local</string>
 </resources>

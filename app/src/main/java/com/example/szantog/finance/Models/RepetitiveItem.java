@@ -10,20 +10,37 @@ public class RepetitiveItem {
     private long sum;
     private long startTime;
     private long endTime;
+    private long latestUpdateTime;
     private int turnoverMonth;
     private String collection;
     private String category;
     private String subCategory;
+    private int pocket;
 
-    public RepetitiveItem(long time, long sum, long startTime, long endTime, int turnoverMonth, String collection, String category, String subCategory) {
+    public RepetitiveItem(long time, long sum, long startTime, long endTime, long latestUpdateTime, int turnoverMonth, String collection, String category, String subCategory) {
         this.time = time;
         this.sum = sum;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.latestUpdateTime = latestUpdateTime;
         this.turnoverMonth = turnoverMonth;
         this.collection = collection;
         this.category = category;
         this.subCategory = subCategory;
+        this.pocket = 1;
+    }
+
+    public RepetitiveItem(long time, long sum, long startTime, long endTime, long latestUpdateTime, int turnoverMonth, String collection, String category, String subCategory, int pocket) {
+        this.time = time;
+        this.sum = sum;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.latestUpdateTime = latestUpdateTime;
+        this.turnoverMonth = turnoverMonth;
+        this.collection = collection;
+        this.category = category;
+        this.subCategory = subCategory;
+        this.pocket = pocket;
     }
 
     public long getTime() {
@@ -58,6 +75,14 @@ public class RepetitiveItem {
         this.endTime = endTime;
     }
 
+    public long getLatestUpdateTime() {
+        return latestUpdateTime;
+    }
+
+    public void setLatestUpdateTime(long latestUpdateTime) {
+        this.latestUpdateTime = latestUpdateTime;
+    }
+
     public int getTurnoverMonth() {
         return turnoverMonth;
     }
@@ -88,5 +113,13 @@ public class RepetitiveItem {
 
     public void setSubCategory(String subCategory) {
         this.subCategory = subCategory;
+    }
+
+    public int getPocket() {
+        return pocket;
+    }
+
+    public void setPocket(int pocket) {
+        this.pocket = pocket;
     }
 }

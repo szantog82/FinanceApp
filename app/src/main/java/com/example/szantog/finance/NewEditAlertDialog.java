@@ -96,6 +96,10 @@ public class NewEditAlertDialog extends AlertDialog implements View.OnClickListe
 
         setView(view);
 
+        TextView currencyText = view.findViewById(R.id.new_edit_dialog_currency);
+        FinanceDatabaseHandler financeDb = new FinanceDatabaseHandler(context);
+        currencyText.setText(financeDb.getCurrentPocketCurrency());
+
         Button btn_0 = view.findViewById(R.id.new_edit_entry_include).findViewById(R.id.btn_0);
         Button btn_1 = view.findViewById(R.id.new_edit_entry_include).findViewById(R.id.btn_1);
         Button btn_2 = view.findViewById(R.id.new_edit_entry_include).findViewById(R.id.btn_2);
@@ -208,7 +212,7 @@ public class NewEditAlertDialog extends AlertDialog implements View.OnClickListe
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTime(new Date(itemCurrentTime));
                     if (isRepetitive) {
-                        listener.onOKButtonClickedRepetitive(new RepetitiveItem(time, sumMoney, itemStartTime, itemEndTime, turnoverSpinner.getSelectedItemPosition() + 1, "", category, subCategory), isNewEntry);
+                        listener.onOKButtonClickedRepetitive(new RepetitiveItem(time, sumMoney, itemStartTime, itemEndTime, 0, turnoverSpinner.getSelectedItemPosition() + 1, "", category, subCategory), isNewEntry);
                     } else {
                         listener.onOKButtonClicked(new EntryItem(time, sumMoney, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
                                 calendar.get(Calendar.DAY_OF_MONTH), category, subCategory), isNewEntry);

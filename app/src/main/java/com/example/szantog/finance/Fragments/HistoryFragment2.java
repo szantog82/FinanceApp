@@ -12,7 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -34,7 +33,7 @@ import java.util.Locale;
  * Created by szantog on 2018.03.16..
  */
 
-public class HistoryFragment extends Fragment implements View.OnClickListener {
+public class HistoryFragment2 extends Fragment implements View.OnClickListener {
 
     private ListView historyListView;
     private HistoryListViewAdapter adapter;
@@ -85,8 +84,6 @@ public class HistoryFragment extends Fragment implements View.OnClickListener {
         annualTextView = view.findViewById(R.id.historyfragment_annual);
         monthlyTextView.setOnClickListener(this);
         annualTextView.setOnClickListener(this);
-        LinearLayout incomeExpenditureLayout = view.findViewById(R.id.historyfragment_incexp_linearlayout);
-        incomeExpenditureLayout.setVisibility(View.INVISIBLE);
 
         db = new FinanceDatabaseHandler(getContext());
         historyListView = view.findViewById(R.id.history_listview);
@@ -133,7 +130,7 @@ public class HistoryFragment extends Fragment implements View.OnClickListener {
         for (EntryItem item : items) {
             totalSum += item.getSum();
         }
-        monthlyBalanceText.setText(Tools.formatNumber(totalSum, db.getCurrentPocketCurrency()));
+        monthlyBalanceText.setText(Tools.formatNumber(totalSum));
         adapter.notifyDataSetChanged();
     }
 

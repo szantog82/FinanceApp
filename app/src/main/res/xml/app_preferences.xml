@@ -2,7 +2,7 @@
 
     <android.support.v7.preference.PreferenceCategory android:title="Testreszabás">
 
-        <android.support.v7.preference.EditTextPreference
+        <android.support.v7.preference.Preference
             android:defaultValue="0"
             android:dialogMessage="Kezdőbalansz"
             android:inputType="number"
@@ -26,8 +26,12 @@
             android:title="Adatok exportálása (helyi)" />
 
         <android.support.v7.preference.Preference
+            android:key="@string/import_data_net"
+            android:title="Biztonsági mentés betöltése (net)" />
+
+        <android.support.v7.preference.Preference
             android:key="@string/import_data_local"
-            android:title="Adatok importálása (helyi)" />
+            android:title="Biztonsági mentés betöltése (helyi)" />
 
     </android.support.v7.preference.PreferenceCategory>
 

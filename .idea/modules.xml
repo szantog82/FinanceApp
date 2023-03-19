@@ -3,8 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Finance.iml" filepath="$PROJECT_DIR$/Finance.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/filechooserdialog-debug/filechooserdialog-debug.iml" filepath="$PROJECT_DIR$/filechooserdialog-debug/filechooserdialog-debug.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Finance.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Finance.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/filechooserdialog-debug/Finance.filechooserdialog-debug.iml" filepath="$PROJECT_DIR$/.idea/modules/filechooserdialog-debug/Finance.filechooserdialog-debug.iml" />
     </modules>
   </component>
 </project>

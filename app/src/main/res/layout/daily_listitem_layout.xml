@@ -30,7 +30,7 @@
         android:layout_alignParentTop="true"
         android:layout_toEndOf="@id/daily_listitem_repetitive_icon"
         android:fontFamily="@font/ff_meta_pro_book"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:textStyle="bold" />
 
     <TextView

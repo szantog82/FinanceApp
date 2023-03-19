@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.support.annotation.Nullable;
 import android.support.v7.preference.Preference;
+import android.text.Html;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.LayoutInflater;
@@ -31,6 +32,10 @@ import com.example.szantog.finance.Adapters.IconGridAdapter;
 import com.example.szantog.finance.Adapters.PreferencesListViewAdapter;
 import com.example.szantog.finance.Database.FinanceDatabaseHandler;
 import com.example.szantog.finance.Database.RepetitiveDatabaseHandler;
+import com.example.szantog.finance.Models.EntryItem;
+import com.example.szantog.finance.Models.InitialBalance;
+import com.example.szantog.finance.Models.PocketItem;
+import com.example.szantog.finance.Models.RepetitiveItem;
 import com.example.szantog.finance.ProgressDialog;
 import com.example.szantog.finance.R;
 import com.google.gson.Gson;
@@ -43,6 +48,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -51,6 +57,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -100,6 +107,8 @@ public class SettingsActivity extends PreferenceActivity {
             dialogBuilder = new AlertDialog.Builder(getActivity());
             sharedPrefs = getActivity().getSharedPreferences(getString(R.string.SHAREDPREF_MAINKEY), 0);
             sharedEditor = sharedPrefs.edit();
+            Preference initialBalance = getPreferenceScreen().findPreference(getString(R.string.initialbalance_key));
+            initialBalance.setOnPreferenceClickListener(this);
             Preference categories = getPreferenceScreen().findPreference(getString(R.string.categories));
             categories.setOnPreferenceClickListener(this);
             Preference passwordSettings = getPreferenceScreen().findPreference(getString(R.string.password_settings));
@@ -108,6 +117,8 @@ public class SettingsActivity extends PreferenceActivity {
             exportData.setOnPreferenceClickListener(this);
             Preference exportDataLocal = getPreferenceScreen().findPreference(getString(R.string.export_data_local));
             exportDataLocal.setOnPreferenceClickListener(this);
+            Preference importDataNet = getPreferenceScreen().findPreference(getString(R.string.import_data_net));
+            importDataNet.setOnPreferenceClickListener(this);
             Preference importDataLocal = getPreferenceScreen().findPreference(getString(R.string.import_data_local));
             importDataLocal.setOnPreferenceClickListener(this);
         }
@@ -319,7 +330,30 @@ public class SettingsActivity extends PreferenceActivity {
 
         @Override
         public boolean onPreferenceClick(Preference preference) {
-            if (preference.getKey().equals(getString(R.string.categories))) {
+            if (preference.getKey().equals(getString(R.string.initialbalance_key))) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                LinearLayout layout = new LinearLayout(getActivity());
+                layout.setOrientation(LinearLayout.VERTICAL);
+                TextView titleText = new TextView(getActivity());
+                final FinanceDatabaseHandler financeDb = new FinanceDatabaseHandler(getActivity());
+                titleText.setText("Kezdőbalansz beállítása - " + financeDb.getCurrentPocketName() + "(" + financeDb.getCurrentPocketCurrency() + ")");
+                final EditText initialBalanceEditText = new EditText(getActivity());
+                initialBalanceEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                initialBalanceEditText.setText(String.valueOf(financeDb.getCurrentInitialValue()));
+                layout.addView(titleText);
+                layout.addView(initialBalanceEditText);
+                builder.setView(layout);
+                builder.setPositiveButton("Mentés", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        int newInitialBalance = Integer.parseInt(initialBalanceEditText.getText().toString());
+                        financeDb.updateInitialBalance(newInitialBalance);
+                        Toast.makeText(getActivity(), "Kezdőbalansz frissítve", Toast.LENGTH_LONG).show();
+                    }
+                });
+                builder.setNegativeButton("Mégse", null);
+                builder.show();
+            } else if (preference.getKey().equals(getString(R.string.categories))) {
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(LAYOUT_INFLATER_SERVICE);
                 newCategoryView = inflater.inflate(R.layout.preferences_set_categories_layout, null);
                 dialogBuilder.setView(newCategoryView);
@@ -394,20 +428,49 @@ public class SettingsActivity extends PreferenceActivity {
                         String balanceData = gson.toJson(db.getAllData());
                         RepetitiveDatabaseHandler repetitivedb = new RepetitiveDatabaseHandler(getActivity());
                         String repetitiveData = gson.toJson(repetitivedb.getAllData());
+                        String pockets = gson.toJson(db.getPockets());
+                        String initialBalances = gson.toJson(db.getInitialBalances());
+                        Set<String> incomeCategorySet = sharedPrefs.getStringSet(getString(R.string.incomecategorylist_key), null);
+                        Set<String> expenditureCategorySet = sharedPrefs.getStringSet(getString(R.string.expenditurecategorylist_key), null);
+                        JSONArray incomeCategoryJSON = new JSONArray();
+                        if (incomeCategorySet != null) {
+                            for (String cat : incomeCategorySet) {
+                                incomeCategoryJSON.put(cat);
+                            }
+                        }
+                        JSONArray expenditureCategoryJSON = new JSONArray();
+                        if (incomeCategorySet != null) {
+                            for (String cat : expenditureCategorySet) {
+                                expenditureCategoryJSON.put(cat);
+                            }
+                        }
+
                         JSONArray categoryList = new JSONArray(db.getDistinctCategories());
+                        String iconString = "";
+                        if (sharedPrefs.getString(getString(R.string.category_iconassociations_key), null) != null) {
+                            iconString = sharedPrefs.getString(getString(R.string.category_iconassociations_key), null);
+                        }
                         // strings[0]: username
                         // strings[1]: password
                         // strings[2]: initialBalance
                         // strings[3]: balanceData
-                        // strings[4]: categoryList
-                        // strings[5]: repetitiveData
+                        // strings[4]: incomeCategoryList
+                        // strings[5]: expenditureCategoryList
+                        // strings[6]: repetitiveData
+                        // strings[7]: icons
+                        // strings[8]: pockets
+                        // strings[9]: initialBalances
                         new UploadBackup().execute(
                                 usernameText.getText().toString(),
                                 pwdText.getText().toString(),
                                 sharedPrefs.getString(getString(R.string.initialbalance_key), "0"),
                                 balanceData,
-                                categoryList.toString(),
-                                repetitiveData
+                                incomeCategoryJSON.toString(),
+                                expenditureCategoryJSON.toString(),
+                                repetitiveData,
+                                iconString,
+                                pockets,
+                                initialBalances
                         );
                     }
                 });
@@ -430,6 +493,29 @@ public class SettingsActivity extends PreferenceActivity {
                 json.addProperty("categorylist", categoryList.toString());
                 json.addProperty("repetitivedata", gson.toJson(repetitivedb.getAllData()));
 
+            } else if (preference.getKey().equals(getString(R.string.import_data_net))) {
+                final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+                final FinanceDatabaseHandler db = new FinanceDatabaseHandler(getActivity());
+
+                LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(LAYOUT_INFLATER_SERVICE);
+                View dialogView = inflater.inflate(R.layout.preferences_backup_layout, null);
+                dialogBuilder.setView(dialogView);
+                dialogBuilder.setTitle("Adatok az biztonsági mentés betöltéséhez (net)");
+                final EditText usernameText = dialogView.findViewById(R.id.preferences_backup_username);
+                final EditText pwdText = dialogView.findViewById(R.id.preferences_backup_password);
+                dialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        new DownloadBackup().execute(usernameText.getText().toString(),
+                                pwdText.getText().toString());
+                    }
+                });
+                dialogBuilder.setNegativeButton("Mégse", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                });
+                dialogBuilder.show();
             } else if (preference.getKey().equals(getString(R.string.import_data_local))) {
 
             } else if (preference.getKey().equals(getString(R.string.password_settings))) {
@@ -498,9 +584,14 @@ public class SettingsActivity extends PreferenceActivity {
                 // strings[1]: password
                 // strings[2]: initialBalance
                 // strings[3]: balanceData
-                // strings[4]: categoryList
-                // strings[5]: repetitiveData
-                String SERVERURL = "https://recipes-szg.herokuapp.com";
+                // strings[4]: incomeCategoryList
+                // strings[5]: expenditureCategoryList
+                // strings[6]: repetitiveData
+                // strings[7]: icons
+                // strings[8]: pockets
+                // strings[9]: initialBalances
+                String SERVERURL = "https://recipes-web-service.onrender.com";
+                //String SERVERURL = "https://forest-custard.glitch.me";
                 URL url = null;
                 try {
                     JsonObject json = new JsonObject();
@@ -508,9 +599,13 @@ public class SettingsActivity extends PreferenceActivity {
                     json.addProperty("password", strings[1]);
                     json.addProperty("initialbalance", strings[2]);
                     json.addProperty("balance", strings[3]);
-                    json.addProperty("categorylist", strings[4]);
-                    json.addProperty("repetitivedata", strings[5]);
-                    url = new URL(SERVERURL + "/financebackup");
+                    json.addProperty("incomecategorylist", strings[4]);
+                    json.addProperty("expenditurecategorylist", strings[5]);
+                    json.addProperty("repetitivedata", strings[6]);
+                    json.addProperty("icons", strings[7]);
+                    json.addProperty("pockets", strings[8]);
+                    json.addProperty("initialBalances", strings[9]);
+                    url = new URL(SERVERURL + "/financebackupnew");
                     HttpsURLConnection connectionUpload = (HttpsURLConnection) url.openConnection();
                     connectionUpload.setRequestMethod("POST");
                     connectionUpload.setDoOutput(true);
@@ -551,6 +646,212 @@ public class SettingsActivity extends PreferenceActivity {
                 }
             }
 
+        }
+
+        class DownloadBackup extends AsyncTask<String, String, String> {
+
+            private ProgressDialog progressDialog;
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                progressDialog = new ProgressDialog(getActivity());
+                progressDialog.show();
+            }
+
+            @Override
+            protected String doInBackground(String... strings) {
+                String SERVERURL = "https://recipes-web-service.onrender.com";
+                URL url = null;
+                String data = "";
+                try {
+                    JsonObject json = new JsonObject();
+                    json.addProperty("username", strings[0]);
+                    json.addProperty("password", strings[1]);
+                    url = new URL(SERVERURL + "/getfinancebackup");
+                    HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.connect();
+                    OutputStream out = connection.getOutputStream();
+                    out.write(json.toString().getBytes("UTF-8"));
+                    out.flush();
+                    out.close();
+                    InputStream is = connection.getInputStream();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                    data = br.readLine();
+                    br.close();
+                    is.close();
+                    connection.disconnect();
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (ProtocolException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return data;
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                super.onPostExecute(s);
+                progressDialog.dismiss();
+
+                if (s== null || s.length() < 13) {
+                    Toast.makeText(getActivity(), "Letöltés sikertelen vagy nincsenek adatok", Toast.LENGTH_SHORT).show();
+                } else {
+
+                    final ArrayList<RepetitiveItem> repetitiveItems = new ArrayList<>();
+                    final ArrayList<EntryItem> normalBalanceEntryItems = new ArrayList<>();
+                    final ArrayList<PocketItem> pocketItems = new ArrayList<>();
+                    final ArrayList<InitialBalance> initialBalanceItems = new ArrayList<>();
+                    final Set<String> incomeCategories = new HashSet<>();
+                    final Set<String> expenditureCategories = new HashSet<>();
+                    String initialBalance = "";
+                    int balanceCount = 0;
+                    int repetitiveCount = 0;
+                    String lastItemDate = "";
+                    String lastItemCategory = "";
+                    String lastItemSum = "";
+                    String iconString = "";
+
+                    try {
+                        JSONObject obj = new JSONObject(s);
+                        Gson gson = new GsonBuilder().create();
+                        initialBalance = obj.getString("initialbalance");
+
+                        String repetitiveArrayAsString = obj.getString("repetitivedata");
+                        JSONArray repetitiveArray = new JSONArray(repetitiveArrayAsString);
+
+                        for (int i = 0; i < repetitiveArray.length(); i++) {
+                            RepetitiveItem item = gson.fromJson(repetitiveArray.getString(i), RepetitiveItem.class);
+                            repetitiveItems.add(item);
+                        }
+                        repetitiveCount = repetitiveItems.size();
+
+
+                        String balanceArrayAsString = obj.getString("balance");
+                        JSONArray balanceArray = new JSONArray(balanceArrayAsString);
+
+                        long time = 0;
+                        int id = 0;
+                        for (int i = 0; i < balanceArray.length(); i++) {
+                            EntryItem item = gson.fromJson(balanceArray.getString(i), EntryItem.class);
+                            normalBalanceEntryItems.add(item);
+                            if (item.getTime() > time) {
+                                time = item.getTime();
+                                id = i;
+                            }
+                        }
+                        balanceCount = normalBalanceEntryItems.size();
+
+                        String pocketsAsString = obj.getString("pockets");
+                        JSONArray pocketsArr = new JSONArray(pocketsAsString);
+                        for (int i = 0; i < pocketsArr.length(); i++) {
+                            PocketItem item = gson.fromJson(pocketsArr.getString(i), PocketItem.class);
+                            pocketItems.add(item);
+                        }
+
+                        String initialBalancesasString = obj.getString("initialBalances");
+                        JSONArray initialBalancesArr = new JSONArray(initialBalancesasString);
+                        for (int i = 0; i < pocketsArr.length(); i++) {
+                            InitialBalance item = gson.fromJson(initialBalancesArr.getString(i), InitialBalance.class);
+                            initialBalanceItems.add(item);
+                        }
+
+
+                        String incomeStr = obj.getString("incomecategorylist");
+                        JSONArray incomeArr = new JSONArray(incomeStr);
+                        int incomeLength = incomeArr.length();
+                        for (int l = 0; l < incomeLength; l++) {
+                            incomeCategories.add((String) incomeArr.get(l));
+                        }
+
+                        String expenditureStr = obj.getString("expenditurecategorylist");
+                        JSONArray expenditureArr = new JSONArray(expenditureStr);
+                        int expenditureLength = expenditureArr.length();
+                        for (int l = 0; l < expenditureLength; l++) {
+                            expenditureCategories.add((String) expenditureArr.get(l));
+                        }
+
+                        EntryItem itemLast = gson.fromJson(balanceArray.getString(id), EntryItem.class);
+                        lastItemDate = itemLast.getYear() + "." + String.valueOf(itemLast.getMonth() + 1) + "." + itemLast.getDay();
+                        lastItemCategory = itemLast.getCategory() + ":" + itemLast.getSubCategory();
+                        lastItemSum = String.valueOf(itemLast.getSum()) + "Ft";
+
+                        iconString = obj.getString("icons");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    AlertDialog.Builder backupDataInfoDialog = new AlertDialog.Builder(getActivity());
+                    backupDataInfoDialog.setTitle("Megerősítés a meglévő adatok felülírásához");
+                    LinearLayout backupInfoLayout = new LinearLayout(getActivity());
+                    backupInfoLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                    backupInfoLayout.setOrientation(LinearLayout.VERTICAL);
+                    TextView[] textViews = new TextView[6];
+                    for (int i = 0; i < 6; i++) {
+                        textViews[i] = new TextView(getActivity());
+                        textViews[i].setTextSize(18);
+                        switch (i) {
+                            case 0:
+                                textViews[i].setText(Html.fromHtml("Kezdőösszeg: <b>" + initialBalance + "Ft</b>"));
+                                break;
+                            case 1:
+                                textViews[i].setText(Html.fromHtml("Bejegyzések száma: <b>" + balanceCount + "</b>"));
+                                break;
+                            case 2:
+                                textViews[i].setText(Html.fromHtml("Ismétlődő bejegyzések száma: <b>" + repetitiveCount + "</b>"));
+                                break;
+                            case 3:
+                                textViews[i].setText(Html.fromHtml("Utolsó bejegyzés - dátum: <b>" + lastItemDate + "</b>"));
+                                break;
+                            case 4:
+                                textViews[i].setText(Html.fromHtml("Utolsó bejegyzés - kategória: <b>" + lastItemCategory + "</b>"));
+                                break;
+                            case 5:
+                                textViews[i].setText(Html.fromHtml("Utolsó bejegyzés - összeg: <b>" + lastItemSum + "</b>"));
+                                break;
+                        }
+                        backupInfoLayout.addView(textViews[i]);
+                    }
+
+                    backupDataInfoDialog.setView(backupInfoLayout);
+                    backupDataInfoDialog.setNegativeButton("Mégse", null);
+                    final String initialBalanceToSharedPrefs = initialBalance;
+                    final String iconStringToString = iconString;
+                    backupDataInfoDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+
+                            sharedEditor.putString(getString(R.string.initialbalance_key), initialBalanceToSharedPrefs);
+                            sharedEditor.putStringSet(getString(R.string.incomecategorylist_key), incomeCategories);
+                            sharedEditor.putStringSet(getString(R.string.expenditurecategorylist_key), expenditureCategories);
+                            sharedEditor.putString(getString(R.string.category_iconassociations_key), iconStringToString.toString());
+                            sharedEditor.apply();
+
+                            FinanceDatabaseHandler financeDatabaseHandler = new FinanceDatabaseHandler(getActivity());
+                            financeDatabaseHandler.deleteAllEntries();
+                            financeDatabaseHandler.addBackupEntries(normalBalanceEntryItems);
+
+                            RepetitiveDatabaseHandler repetitiveDatabaseHandler = new RepetitiveDatabaseHandler(getActivity());
+                            repetitiveDatabaseHandler.deleteAllEntries();
+                            for (RepetitiveItem item : repetitiveItems) {
+                                repetitiveDatabaseHandler.insertDataFromBackup(item);
+                            }
+
+                            financeDatabaseHandler.deleteAllPockets();
+                            financeDatabaseHandler.addBackupPockets(pocketItems);
+
+                            financeDatabaseHandler.deleteAllInitialBalances();
+                            financeDatabaseHandler.addBackupInitialBalances(initialBalanceItems);
+
+
+                        }
+                    });
+                    backupDataInfoDialog.show();
+                }
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ public class EntryItem implements Comparable<EntryItem> {
     private int day;
     private String category;
     private String subCategory;
+    private int pocket;
 
     public EntryItem(long time, long sum, int year, int month, int day, String category, String subCategory) {
         this.time = time;
@@ -26,6 +27,18 @@ public class EntryItem implements Comparable<EntryItem> {
         this.day = day;
         this.category = category;
         this.subCategory = subCategory;
+        this.pocket = 1;
+    }
+
+    public EntryItem(long time, long sum, int year, int month, int day, String category, String subCategory, int pocket) {
+        this.time = time;
+        this.sum = sum;
+        this.year = year;
+        this.month = month;
+        this.day = day;
+        this.category = category;
+        this.subCategory = subCategory;
+        this.pocket = pocket;
     }
 
     public long getTime() {
@@ -86,6 +99,14 @@ public class EntryItem implements Comparable<EntryItem> {
 
     public void setSubCategory(String subCategory) {
         this.subCategory = subCategory;
+    }
+
+    public int getPocket() {
+        return pocket;
+    }
+
+    public void setPocket(int pocket) {
+        this.pocket = pocket;
     }
 
     private int getDayCount() {
