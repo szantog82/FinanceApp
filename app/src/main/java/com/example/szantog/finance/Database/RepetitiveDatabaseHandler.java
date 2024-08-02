@@ -89,8 +89,10 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
 
     public ArrayList<RepetitiveItem> getAllData() {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = String.format("SELECT * FROM %s ", TABLE_NAME);
-        Cursor cursor = db.rawQuery(query, null);
+        int pocketId = sharedPrefs.getInt(context.getString(R.string.pocket_sharedpref_key), 1);
+        String query = String.format("SELECT * FROM %s WHERE %s = ? ", TABLE_NAME, POCKET);
+        String[] selectionArgs = {String.valueOf(pocketId)};
+        Cursor cursor = db.rawQuery(query, selectionArgs);
         ArrayList<RepetitiveItem> output = new ArrayList<>();
         for (int i = 0; i < cursor.getCount(); i++) {
             cursor.moveToPosition(i);
@@ -112,6 +114,7 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void insertData(RepetitiveItem item) {
+        int pocketId = sharedPrefs.getInt(context.getString(R.string.pocket_sharedpref_key), 1);
         long time = item.getTime() + (long) (Math.random() * 100);
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -153,6 +156,7 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
         if (item.getLatestUpdateTime() != 0) {
             values.put(LATESTUPDATETIME, item.getLatestUpdateTime());
         }
+        values.put(POCKET, pocketId);
         db.insert(TABLE_NAME, null, values);
         values.clear();
         if (item.getStartTime() < System.currentTimeMillis()) {
@@ -165,6 +169,7 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
             values.put(FinanceDatabaseHandler.DAY, calendar.get(Calendar.DAY_OF_MONTH));
             values.put(CATEGORY, item.getCategory());
             values.put(SUBCATEGORY, item.getSubCategory());
+            values.put(POCKET, pocketId);
             db.insert(FinanceDatabaseHandler.TABLE_NAME, null, values);
         }
         db.close();
@@ -235,7 +240,7 @@ public class RepetitiveDatabaseHandler extends SQLiteOpenHelper {
                 int latestUpdateMonth = calendar.get(Calendar.MONTH);
                 int latestUpdateDay = calendar.get(Calendar.DAY_OF_MONTH);
                 int turnoverMonth = cursor.getInt(cursor.getColumnIndex(TURNOVER_MONTH));
-                int pocket = cursor.getInt(cursor.getColumnIndex("pocket"));
+                int pocket = cursor.getInt(cursor.getColumnIndex(POCKET));
                 int nextUpdateYear = 0;
                 int nextUpdateMonth = 0;
                 if (latestUpdateMonth + turnoverMonth > 11) {

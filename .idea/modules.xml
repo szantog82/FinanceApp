@@ -4,6 +4,9 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Finance.iml" filepath="$PROJECT_DIR$/Finance.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Finance.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Finance.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Finance.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Finance.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Finance.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Finance.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Finance.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Finance.app.unitTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/filechooserdialog-debug/Finance.filechooserdialog-debug.iml" filepath="$PROJECT_DIR$/.idea/modules/filechooserdialog-debug/Finance.filechooserdialog-debug.iml" />
     </modules>
   </component>

@@ -363,8 +363,9 @@ public class FinanceDatabaseHandler extends SQLiteOpenHelper {
 
     public ArrayList<SubCategoryListItem> getSubCategoriesforCategory(String category) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = String.format("SELECT %s FROM %s WHERE %s = ? ", SUBCATEGORY, TABLE_NAME, CATEGORY);
-        String[] selectionArgs = {category};
+        int pocketId = sharedPrefs.getInt(context.getString(R.string.pocket_sharedpref_key), 1);
+        String query = String.format("SELECT %s FROM %s WHERE %s = ? AND %s = ?", SUBCATEGORY, TABLE_NAME, CATEGORY, POCKET);
+        String[] selectionArgs = {category, String.valueOf(pocketId)};
         Cursor cursor = db.rawQuery(query, selectionArgs);
         ArrayList<SubCategoryListItem> sortItems = new ArrayList<>();
         if (cursor.moveToFirst()) {
