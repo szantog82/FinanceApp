@@ -1,18 +1,25 @@
 package com.example.szantog.finance.Activities;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceActivity;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.preference.Preference;
 import android.text.Html;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,15 +54,23 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -329,6 +344,16 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
         @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            int WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE = 1;
+
+            if (requestCode == WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE) {
+               exportJsonToFile();
+            }
+        }
+
+        @Override
         public boolean onPreferenceClick(Preference preference) {
             if (preference.getKey().equals(getString(R.string.initialbalance_key))) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -481,19 +506,12 @@ public class SettingsActivity extends PreferenceActivity {
                 });
                 dialogBuilder.show();
             } else if (preference.getKey().equals(getString(R.string.export_data_local))) {
-                Gson gson = new GsonBuilder().create();
-                FinanceDatabaseHandler db = new FinanceDatabaseHandler(getActivity());
-                RepetitiveDatabaseHandler repetitivedb = new RepetitiveDatabaseHandler(getActivity());
-                JSONArray categoryList = new JSONArray(db.getDistinctCategories());
-                JsonObject json = new JsonObject();
-                json.addProperty("username", "localuser");
-                json.addProperty("password", "password");
-                json.addProperty("initialbalance", sharedPrefs.getString(getString(R.string.initialbalance_key), "0"));
-                json.addProperty("balance", gson.toJson(db.getAllData()));
-                json.addProperty("categorylist", categoryList.toString());
-                json.addProperty("repetitivedata", gson.toJson(repetitivedb.getAllData()));
-
-            } else if (preference.getKey().equals(getString(R.string.import_data_net))) {
+                if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                    ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                } else {
+                    exportJsonToFile();
+                }
+              } else if (preference.getKey().equals(getString(R.string.import_data_net))) {
                 final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
                 final FinanceDatabaseHandler db = new FinanceDatabaseHandler(getActivity());
 
@@ -562,6 +580,69 @@ public class SettingsActivity extends PreferenceActivity {
 
             }
             return true;
+        }
+
+        private void exportJsonToFile() {
+            Log.i("SettingsActivity", "exportJsonToFile: export started");
+            Gson gson = new GsonBuilder().create();
+            FinanceDatabaseHandler db = new FinanceDatabaseHandler(getActivity());
+            RepetitiveDatabaseHandler repetitivedb = new RepetitiveDatabaseHandler(getActivity());
+            JSONArray categoryList = new JSONArray(db.getDistinctCategories());
+            JsonObject json = new JsonObject();
+
+            String balanceData = gson.toJson(db.getAllData());
+            String repetitiveData = gson.toJson(repetitivedb.getAllData());
+            String pockets = gson.toJson(db.getPockets());
+            String initialBalances = gson.toJson(db.getInitialBalances());
+            Set<String> incomeCategorySet = sharedPrefs.getStringSet(getString(R.string.incomecategorylist_key), null);
+            Set<String> expenditureCategorySet = sharedPrefs.getStringSet(getString(R.string.expenditurecategorylist_key), null);
+            JSONArray incomeCategoryJSON = new JSONArray();
+            if (incomeCategorySet != null) {
+                for (String cat : incomeCategorySet) {
+                    incomeCategoryJSON.put(cat);
+                }
+            }
+            JSONArray expenditureCategoryJSON = new JSONArray();
+            if (incomeCategorySet != null) {
+                for (String cat : expenditureCategorySet) {
+                    expenditureCategoryJSON.put(cat);
+                }
+            }
+            String iconString = "";
+            if (sharedPrefs.getString(getString(R.string.category_iconassociations_key), null) != null) {
+                iconString = sharedPrefs.getString(getString(R.string.category_iconassociations_key), null);
+            }
+
+            json.addProperty("initialbalance", initialBalances);
+            json.addProperty("balance", balanceData);
+            json.addProperty("incomecategorylist", incomeCategoryJSON.toString());
+            json.addProperty("expenditurecategorylist", expenditureCategoryJSON.toString());
+            json.addProperty("repetitivedata", repetitiveData);
+            json.addProperty("icons", iconString);
+            json.addProperty("pockets", pockets);
+            json.addProperty("initialBalances", initialBalances);
+
+            File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            Calendar now = Calendar.getInstance();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH-mm");
+            String formattedDateTime = formatter.format(now.getTime());
+
+            String fileName = String.format("finance_export_%s.json", formattedDateTime);
+            File exportFile = new File(downloadDir, fileName);
+
+            try {
+                FileOutputStream fos = new FileOutputStream(exportFile);
+                OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+                osw.write(json.toString());
+                osw.close();
+                fos.close();
+                Log.i("SettingsActivity", "exportJsonToFile: export finished");
+            } catch (Exception e) {
+                Log.e("onPreferenceClick: ", e.toString());
+                Toast.makeText(getActivity(), String.format("Hiba a fájl mentésénél: %e", e.toString()), Toast.LENGTH_SHORT).show();
+            }
+
+            Toast.makeText(getActivity(), String.format("Fájl %s mentve a Downloads könyvtárba", fileName), Toast.LENGTH_SHORT).show();
         }
 
         class UploadBackup extends AsyncTask<String, String, String> {
